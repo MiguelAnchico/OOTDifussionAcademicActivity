@@ -1,77 +1,163 @@
-# OOTDiffusion
-This repository is the official implementation of OOTDiffusion
+# OOTDiffusion Setup Guide
 
-🤗 [Try out OOTDiffusion](https://huggingface.co/spaces/levihsu/OOTDiffusion)
+Este repositorio contiene la guía completa para instalar y configurar **OOTDiffusion** para virtual try-on, así como otros modelos GAN para preprocesamiento de imágenes.
 
-(Thanks to [ZeroGPU](https://huggingface.co/zero-gpu-explorers) for providing A100 GPUs)
+## 📋 Tabla de Contenidos
 
-<!-- Or [try our own demo](https://ootd.ibot.cn/) on RTX 4090 GPUs -->
+- [Hardware Utilizado](#hardware-utilizado-en-las-pruebas)
+- [Instalación de OOTDiffusion](#instalación-de-ootdiffusion)
+- [Descarga de Modelos](#descarga-de-modelos)
+- [Configuración del Entorno](#configuración-del-entorno)
+- [Uso Básico](#uso-básico)
+- [Solución de Problemas](#solución-de-problemas)
+- [Transferencia de Archivos](#transferencia-de-archivos)
+- [Otros Modelos GAN](#otros-modelos-gan)
 
-> **OOTDiffusion: Outfitting Fusion based Latent Diffusion for Controllable Virtual Try-on** [[arXiv paper](https://arxiv.org/abs/2403.01779)]<br>
-> [Yuhao Xu](http://levihsu.github.io/), [Tao Gu](https://github.com/T-Gu), [Weifeng Chen](https://github.com/ShineChen1024), [Chengcai Chen](https://www.researchgate.net/profile/Chengcai-Chen)<br>
-> Xiao-i Research
+## 🖥️ Hardware Utilizado en las Pruebas
 
+- **Entorno**: Cloud GPU con 80GB de almacenamiento
+- **OS**: Linux
+- **CUDA**: Disponible y compatible
+- **Python**: 3.10
 
-Our model checkpoints trained on [VITON-HD](https://github.com/shadow2496/VITON-HD) (half-body) and [Dress Code](https://github.com/aimagelab/dress-code) (full-body) have been released
+## 🚀 Instalación de OOTDiffusion
 
-* 🤗 [Hugging Face link](https://huggingface.co/levihsu/OOTDiffusion) for ***checkpoints*** (ootd, humanparsing, and openpose)
-* 📢📢 We support ONNX for [humanparsing](https://github.com/GoGoDuck912/Self-Correction-Human-Parsing) now. Most environmental issues should have been addressed : )
-* Please also download [clip-vit-large-patch14](https://huggingface.co/openai/clip-vit-large-patch14) into ***checkpoints*** folder
-* We've only tested our code and models on Linux (Ubuntu 22.04)
+### Paso 1: Configuración inicial del entorno
 
-![demo](images/demo.png)&nbsp;
-![workflow](images/workflow.png)&nbsp;
+```bash
+# Verificar que tenemos CUDA disponible
+nvidia-smi
 
-## Installation
-1. Clone the repository
+# Actualizar el sistema
+sudo apt update && sudo apt upgrade -y
 
-```sh
-git clone https://github.com/levihsu/OOTDiffusion
+# Instalar dependencias del sistema
+sudo apt install -y git git-lfs build-essential cmake pkg-config libgl1-mesa-glx
 ```
 
-2. Create a conda environment and install the required packages
+### Paso 2: Clonar y configurar OOTDiffusion
 
-```sh
-conda create -n ootd python==3.10
+```bash
+# Clonar el repositorio
+git clone https://github.com/levihsu/OOTDiffusion.git
+cd OOTDiffusion
+
+# Crear y activar entorno conda
+conda create -n ootd python==3.10 -y
 conda activate ootd
+
+# Instalar PyTorch y dependencias específicas
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2
+
+# Instalar requirements
 pip install -r requirements.txt
 ```
 
-## Inference
-1. Half-body model
+### Paso 3: Verificar instalación inicial
 
-```sh
+```bash
+# Verificar que todo está instalado correctamente
+python -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}')"
+```
+
+## 📦 Descarga de Modelos
+
+**Fuente de los modelos**: [levihsu/OOTDiffusion en Hugging Face](https://huggingface.co/levihsu/OOTDiffusion)
+
+### Preparar estructura de directorios
+
+```bash
+# Instalar git-lfs
+git lfs install
+
+# Crear estructura de directorios
+mkdir -p checkpoints/{ootd,humanparsing,openpose}
+```
+
+### Descargar modelos específicos
+
+```bash
+# Modelos de human parsing
+wget -O checkpoints/humanparsing/parsing_atr.onnx https://huggingface.co/levihsu/OOTDiffusion/resolve/main/checkpoints/humanparsing/parsing_atr.onnx
+wget -O checkpoints/humanparsing/parsing_lip.onnx https://huggingface.co/levihsu/OOTDiffusion/resolve/main/checkpoints/humanparsing/parsing_lip.onnx
+wget -O checkpoints/humanparsing/exp-schp-201908261155-lip.pth https://huggingface.co/levihsu/OOTDiffusion/resolve/main/checkpoints/humanparsing/exp-schp-201908261155-lip.pth
+
+# Modelos principales de OOTD (pipelines completos)
+git clone https://huggingface.co/levihsu/OOTDiffusion temp_ootd
+cp -r temp_ootd/checkpoints/ootd checkpoints/
+cp -r temp_ootd/checkpoints/openpose checkpoints/
+rm -rf temp_ootd
+```
+
+### Archivos de modelos descargados
+
+#### Human Parsing Models:
+
+- `parsing_atr.onnx`: Modelo ONNX para human parsing ATR
+- `parsing_lip.onnx`: Modelo ONNX para human parsing LIP
+- `exp-schp-201908261155-lip.pth`: Modelo PyTorch para SCHP
+
+#### OOTDiffusion Models:
+
+- `checkpoints/ootd/`: Pipeline completo del modelo principal
+- `checkpoints/openpose/`: Modelos para detección de poses
+
+## ⚙️ Configuración del Entorno
+
+### Solución de incompatibilidades de versiones
+
+Si encuentras el error de importación con `huggingface_hub`, ejecuta:
+
+```bash
+# Asegúrate de estar en el entorno correcto
+conda activate ootd
+
+# Instalar versión compatible
+pip install huggingface_hub==0.19.4
+pip install basicsr
+```
+
+### Verificar instalaciones
+
+```bash
+# Verificar versiones instaladas
+pip list | grep -E "(huggingface|diffusers|transformers)"
+
+# Verificar que las importaciones funcionen
+python -c "from huggingface_hub import hf_hub_download; print('huggingface_hub OK')"
+python -c "import diffusers; print('diffusers OK')"
+```
+
+## 🎯 Uso Básico
+
+### Preparar imágenes de prueba
+
+```bash
+# Crear estructura para imágenes de prueba
+mkdir -p img_test/{clothe,person}
+
+# Estructura esperada:
+# img_test/
+# ├── clothe/
+# │   ├── 01260_00.jpg
+# │   └── 01430_00.jpg
+# └── person/
+#     ├── 00891_00.jpg
+#     └── 03615_00.jpg
+```
+
+### Ejecutar OOTDiffusion
+
+```bash
+# Ir al directorio de ejecución
 cd OOTDiffusion/run
-python run_ootd.py --model_path <model-image-path> --cloth_path <cloth-image-path> --scale 2.0 --sample 4
+
+# Crear directorio de salida
+mkdir -p images_output
+
+# Half-body model (modelo de medio cuerpo)
+python run_ootd.py \
+    --model_path "../img_test/person/00891_00.jpg" \
+    --cloth_path "../img_test/clothe/01260_00.jpg" \
+
 ```
-
-2. Full-body model 
-
-> Garment category must be paired: 0 = upperbody; 1 = lowerbody; 2 = dress
-
-```sh
-cd OOTDiffusion/run
-python run_ootd.py --model_path <model-image-path> --cloth_path <cloth-image-path> --model_type dc --category 2 --scale 2.0 --sample 4
-```
-
-## Citation
-```
-@article{xu2024ootdiffusion,
-  title={OOTDiffusion: Outfitting Fusion based Latent Diffusion for Controllable Virtual Try-on},
-  author={Xu, Yuhao and Gu, Tao and Chen, Weifeng and Chen, Chengcai},
-  journal={arXiv preprint arXiv:2403.01779},
-  year={2024}
-}
-```
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=levihsu/OOTDiffusion&type=Date)](https://star-history.com/#levihsu/OOTDiffusion&Date)
-
-## TODO List
-- [x] Paper
-- [x] Gradio demo
-- [x] Inference code
-- [x] Model weights
-- [ ] Training code

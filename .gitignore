@@ -1,0 +1,18 @@
+# Modelos pesados
+checkpoints/
+temp_models/
+*.pth
+*.safetensors
+*.bin
+*.onnx
+*.h5
+*.msgpack
+
+# Instaladores
+*.sh
+Miniconda3-latest-Linux-x86_64.sh
+
+# Temporales
+__pycache__/
+*.pyc
+temp/

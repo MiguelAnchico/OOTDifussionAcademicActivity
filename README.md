@@ -22,7 +22,8 @@ Este repositorio contiene la implementación y guía completa para instalar **OO
 - **OS**: Linux
 - **CUDA**: Disponible y compatible
 - **Python**: 3.10
-- **GPU Memory**: Mínimo 8GB VRAM recomendado
+- **Tarjeta Gráfica (GPU)**:  RTX 3090 recomendado
+- **GPU Memory**: Mínimo 12GB VRAM recomendado
 
 ## 🏗️ Arquitectura del Modelo
 

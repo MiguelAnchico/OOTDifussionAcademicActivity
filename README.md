@@ -16,6 +16,8 @@ Este repositorio contiene la implementación y guía completa para instalar **OO
 - [Otros Modelos GAN](#otros-modelos-gan)
 - [Créditos y Licencia](#créditos-y-licencia)
 
+**🔗 [Frontend Repository - OOTDiffusion User View](https://github.com/MiguelAnchico/frontendOOTDiffusion)**
+
 ## 🖥️ Hardware Utilizado en las Pruebas
 
 - **Entorno**: Cloud GPU con 80GB de almacenamiento
